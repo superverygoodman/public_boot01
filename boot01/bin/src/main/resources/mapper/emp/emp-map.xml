@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yedam.app.emp.mapper.EmpMapper"><!-- 인터페이스와 이름 같지않아도 됨. 알아볼수 있게-->
+<!-- 경로 확인할려면 해당 파일의 property resouce path로 경로 보면서 일치하는지 확인하면됨. -->
+	<!-- 전체조회   propertise에서 하위 패키지 기반으로 알리야스 설정해서 쓸수있음-->
+	<select id="selectAllList" resultType="EmpVO">
+		SELECT employee_id
+		      ,last_name
+		      ,first_name
+		      ,email
+		      ,phone_number
+		      ,hire_date
+		      ,job_id
+		      ,salary
+		      ,commission_pct
+		      ,manager_id
+		      ,department_id
+		FROM employees
+		<!--  WHERE ${keyword} LIKE '%'||#{jobId}||'%' 달러는 홀따옴표를 쓰지않음 샵은 씀
+		   검색기반 할떄 편하게 쓰임 달러는 ${keyword} => keyword #{keyword} => 'keyword'
+		   WHERE '%${jobId}%' => '%IT_REP%'  -->
+		ORDER BY employee_id	
+	</select>
+	<!-- 단건조회 -->
+	<select id="selectInfo" parameterType="EmpVO" resultType="EmpVO">
+		SELECT employee_id
+		      ,last_name
+		      ,first_name
+		      ,email
+		      ,phone_number
+		      ,hire_date
+		      ,job_id
+		      ,salary
+		      ,commission_pct
+		      ,manager_id
+		      ,department_id
+		FROM employees
+		WHERE employee_id = #{employeeId} <!-- EmpVO의 employeeId
+		${} #{} -->	
+	
+	</select>
+	<!-- 등록 -->
+	<!-- 마이바티스가 바로 필드명을 쓸수 있는이유는 마이바티스가 객체를 전제로 세팅하기 떄문임
+	단일값이 객체일떄는 내부 필드를 알아서 찾아감 -->
+	<insert id="insertInfo" parameterType="EmpVO">
+		INSERT INTO employees (
+					               employee_id
+							      ,last_name
+							      ,email
+							      ,hire_date
+							      ,job_id
+							      <if test="salary > 0">
+							      ,salary
+							      </if>
+		                        )
+		VALUES                 (
+								 employees_seq.NEXTVAL
+		                        ,#{lastName}
+		                        ,#{email}
+		                        <choose>
+		                        	<when test="hireDate != null">
+				                        ,#{hireDate}
+		                        	</when>
+		                        	<otherwise>
+		                        		, sysdate
+		                        	</otherwise>
+		                        </choose>
+		                        ,#{jobId}
+		                        <if test="salary > 0"> <!-- null값은 아예 비교하는거 에서 탈락임 그냥 false뜬다고 -->
+		                        ,#{salary}		                        
+		                        </if> <!-- 컬럼이랑 값이 같이 움직일수 있게할것 이거 false되면 5개 컬럼이잖아. 요구하는건 6개인데-->
+		                        )
+	</insert>
+	<!-- 수정 
+	파라미터 타입은 두개 쓸수 없기때문에 생략. @Param쓰면 생략가능한듯-->
+	<update id="updateInfo">
+		UPDATE employees
+		SET
+		    last_name = #{emp.lastName}
+		   ,email = #{emp.email}
+		   ,job_id = #{emp.jobId}
+		   <if test="emp.salary > 0">
+		   ,salary = #{emp.salary}
+		   </if>
+		WHERE employee_id = #{id}
+	</update>
+	<!-- 삭제 -->
+	<delete id="deleteInfo">
+		DELETE FROM employees
+		WHERE employee_id = #{eid}
+		<!-- 단일값할떄는 이름이 상관없음 (내부이름은 중요하지 않음 어차피 값이 하나기 떄문) -->
+	</delete>
+	<!-- 셀렉트키는 insert,delete 태그밖에 기능을 지원안함 -->
+</mapper>
